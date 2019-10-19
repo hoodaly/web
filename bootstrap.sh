@@ -36,6 +36,7 @@ sudo apt-get install -y esl-erlang elixir rebar
 # installing entice & seeding the db...
 cd /vagrant/
 mix local.hex --force
+mix local.rebar --force
 mix deps.get
 sudo -u 'postgres' psql -c "CREATE DATABASE entice;"
 sudo -u 'postgres' psql -c "CREATE DATABASE entice_test;"
