@@ -131,17 +131,15 @@ defmodule Entice.Web.EntityChannel do
   defp process_attributes(attributes, filter) when is_map(attributes) do
     attributes
     |> Map.keys
-    |> Enum.filter_map(
-        fn (attr) -> attr in filter end,
-        fn (attr) -> attributes[attr] |> attribute_to_tuple end)
+    |> Enum.filter(fn (attr) -> attr in filter end)
+    |> Enum.map(fn (attr) -> attributes[attr] |> attribute_to_tuple end)
     |> Enum.into(%{})
   end
 
   defp process_attributes(attributes, filter) when is_list(attributes) do
     attributes
-    |> Enum.filter_map(
-        fn (attr) -> attr in filter end,
-        &StructOps.to_underscore_name/1)
+    |> Enum.filter(fn (attr) -> attr in filter end)
+    |> Enum.map(&StructOps.to_underscore_name/1)
   end
 
 
