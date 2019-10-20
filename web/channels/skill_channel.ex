@@ -98,7 +98,7 @@ defmodule Entice.Web.SkillChannel do
     skill = SkillBar.get_skill(socket |> entity_id, slot)
     target = Map.get(msg, "target", socket |> entity_id)
 
-    case socket |> entity_id |> Casting.cast_skill(skill, slot, target, self) do
+    case socket |> entity_id |> Casting.cast_skill(skill, slot, target, self()) do
       {:error, reason} -> {:reply, {:error, %{slot: slot, reason: reason}}, socket}
       {:ok, skill, cast_time} ->
         socket |> broadcast("cast:start", %{

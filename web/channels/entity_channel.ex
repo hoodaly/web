@@ -27,13 +27,13 @@ defmodule Entice.Web.EntityChannel do
   def join("entity:" <> map, _message, %Socket{assigns: %{map: map_mod}} = socket) do
     {:ok, ^map_mod} = Maps.get_map(camelize(map))
     Process.flag(:trap_exit, true)
-    send(self, :after_join)
+    send(self(), :after_join)
     {:ok, socket}
   end
 
 
   def handle_info(:after_join, socket) do
-    Coordination.register_observer(self, socket |> map)
+    Coordination.register_observer(self(), socket |> map)
     attrs = socket |> entity_id |> Entity.take_attributes(@all_reported_attributes)
     socket |> push("initial", %{attributes: process_attributes(attrs, @all_reported_attributes)})
     {:noreply, socket}
