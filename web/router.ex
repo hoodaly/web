@@ -39,6 +39,7 @@ defmodule Entice.Web.Router do
 
     get     "/char",                  CharController,     :list
     post    "/char",                  CharController,     :create
+    delete  "/char",                  CharController,     :delete
 
     get     "/maps",                  DocuController,     :maps
     get     "/skills",                DocuController,     :skills
