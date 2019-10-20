@@ -20,7 +20,6 @@ defmodule Entice.Web.ChannelCase do
       use Phoenix.ChannelTest
 
       alias Entice.Web.Repo
-      import Ecto.Model
       import Ecto.Query, only: [from: 2]
 
 

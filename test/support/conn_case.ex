@@ -20,7 +20,6 @@ defmodule Entice.Web.ConnCase do
       use Phoenix.ConnTest
 
       alias Entice.Web.Repo
-      import Ecto.Model
       import Ecto.Query, only: [from: 2]
 
       import Entice.Web.Router.Helpers
