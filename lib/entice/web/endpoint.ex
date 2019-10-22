@@ -43,7 +43,7 @@ defmodule Entice.Web.Endpoint do
   do: Phoenix.PubSub.broadcast(@pubsub_server, topic, message)
 
   def plain_broadcast_from(topic, message),
-  do: plain_broadcast_from(self, topic, message)
+  do: plain_broadcast_from(self(), topic, message)
 
   def plain_broadcast_from(pid, topic, message),
   do: Phoenix.PubSub.broadcast_from(@pubsub_server, pid, topic, message)

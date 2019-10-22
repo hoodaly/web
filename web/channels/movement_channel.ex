@@ -10,13 +10,13 @@ defmodule Entice.Web.MovementChannel do
   def join("movement:" <> map, _message, %Socket{assigns: %{map: map_mod}} = socket) do
     {:ok, ^map_mod} = Maps.get_map(camelize(map))
     Process.flag(:trap_exit, true)
-    send(self, :after_join)
+    send(self(), :after_join)
     {:ok, socket}
   end
 
 
   def handle_info(:after_join, socket) do
-    Coordination.register_observer(self, socket |> map)
+    Coordination.register_observer(self(), socket |> map)
     :ok = Move.register(socket |> entity_id)
     {:noreply, socket}
   end

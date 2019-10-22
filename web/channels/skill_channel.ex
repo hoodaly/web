@@ -9,13 +9,13 @@ defmodule Entice.Web.SkillChannel do
   def join("skill:" <> map, _message, %Socket{assigns: %{map: map_mod}} = socket) do
     {:ok, ^map_mod} = Maps.get_map(camelize(map))
     Process.flag(:trap_exit, true)
-    send(self, :after_join)
+    send(self(), :after_join)
     {:ok, socket}
   end
 
 
   def handle_info(:after_join, %Socket{assigns: %{entity_id: entity_id, character: char}} = socket) do
-    Coordination.register_observer(self, socket |> map)
+    Coordination.register_observer(self(), socket |> map)
     SkillBar.register(entity_id, char.skillbar)
     Casting.register(entity_id)
     socket |> push("initial", %{unlocked_skills: char.available_skills, skillbar: entity_id |> SkillBar.get_skills})
