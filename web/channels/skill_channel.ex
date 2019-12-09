@@ -9,13 +9,13 @@ defmodule Entice.Web.SkillChannel do
   def join("skill:" <> map, _message, %Socket{assigns: %{map: map_mod}} = socket) do
     {:ok, ^map_mod} = Maps.get_map(camelize(map))
     Process.flag(:trap_exit, true)
-    send(self, :after_join)
+    send(self(), :after_join)
     {:ok, socket}
   end
 
 
   def handle_info(:after_join, %Socket{assigns: %{entity_id: entity_id, character: char}} = socket) do
-    Coordination.register_observer(self, socket |> map)
+    Coordination.register_observer(self(), socket |> map)
     SkillBar.register(entity_id, char.skillbar)
     Casting.register(entity_id)
     socket |> push("initial", %{unlocked_skills: char.available_skills, skillbar: entity_id |> SkillBar.get_skills})
@@ -80,7 +80,7 @@ defmodule Entice.Web.SkillChannel do
 
 
   def handle_in("skillbar:set", %{"slot" => slot, "id" => id}, socket) when slot in 0..10 and id > -1 do
-    skill_bits = :erlang.list_to_integer((socket |> character).available_skills |> String.to_char_list, 16)
+    skill_bits = :erlang.list_to_integer((socket |> character).available_skills |> String.to_charlist, 16)
     unlocked = Entice.Utils.BitOps.get_bit(skill_bits, id)
 
     case {unlocked, Skills.get_skill(id), (socket |> map).is_outpost?} do
@@ -98,7 +98,7 @@ defmodule Entice.Web.SkillChannel do
     skill = SkillBar.get_skill(socket |> entity_id, slot)
     target = Map.get(msg, "target", socket |> entity_id)
 
-    case socket |> entity_id |> Casting.cast_skill(skill, slot, target, self) do
+    case socket |> entity_id |> Casting.cast_skill(skill, slot, target, self()) do
       {:error, reason} -> {:reply, {:error, %{slot: slot, reason: reason}}, socket}
       {:ok, skill, cast_time} ->
         socket |> broadcast("cast:start", %{

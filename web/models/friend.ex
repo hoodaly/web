@@ -5,7 +5,7 @@ defmodule Entice.Web.Friend do
     field       :base_name,      :string
     belongs_to  :account,        Entice.Web.Account
     belongs_to  :friend_account, Entice.Web.Account
-    timestamps
+    timestamps()
   end
 
 

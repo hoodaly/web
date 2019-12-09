@@ -17,7 +17,6 @@ defmodule Entice.Web.ModelCase do
   using do
     quote do
       alias Entice.Web.Repo
-      import Ecto.Model
       import Ecto.Query, only: [from: 2]
       import Entice.Web.ModelCase
     end

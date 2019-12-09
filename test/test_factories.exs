@@ -19,7 +19,7 @@ defmodule Entice.Test.Factories do
   do: %Character{name: name}
 
 
-  def create_account,                      do: create_account([create_character])
+  def create_account,                      do: create_account([create_character()])
   def create_account(%Character{} = char), do: create_account([char])
   def create_account(characters),
   do: %Account{
@@ -29,7 +29,7 @@ defmodule Entice.Test.Factories do
 
 
   def create_client do
-    {:ok, id} = Client.add(create_account)
+    {:ok, id} = Client.add(create_account())
     id
   end
 
@@ -52,10 +52,10 @@ defmodule Entice.Test.Factories do
   end
 
   def create_player(map) when is_atom(map) do
-    char       = create_character
+    char       = create_character()
     acc        = create_account(char)
     cid        = create_client(acc)
-    {eid, pid} = create_entity
+    {eid, pid} = create_entity()
     {:ok, tid} = Token.create_entity_token(cid, %{entity_id: eid, map: map, char: char})
 
     Coordination.register(eid, map)

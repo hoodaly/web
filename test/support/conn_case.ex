@@ -20,7 +20,6 @@ defmodule Entice.Web.ConnCase do
       use Phoenix.ConnTest
 
       alias Entice.Web.Repo
-      import Ecto.Model
       import Ecto.Query, only: [from: 2]
 
       import Entice.Web.Router.Helpers
@@ -54,7 +53,7 @@ defmodule Entice.Web.ConnCase do
       def fetch_route(req, route, context, must_login) do
         conn = build_conn(req, route, context.params)
         |> with_session()
-        if must_login == true, do: conn = log_in(conn, context)
+        conn = if must_login == true, do: log_in(conn, context), else: conn
 
         conn = Entice.Web.Router.call(conn, @opts)
         Poison.decode(conn.resp_body)

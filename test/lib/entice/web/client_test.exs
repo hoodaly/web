@@ -15,7 +15,7 @@ defmodule Entice.Web.ClientTest do
   test "default character" do
     assert {:ok, id} = Client.log_in("root@entice.ps", "root")
     assert {:ok, char} = Client.get_char(id, "Root Root A")
-    assert Skills.max_unlocked_skills == :erlang.list_to_integer(char.available_skills |> String.to_char_list, 16)
+    assert Skills.max_unlocked_skills == :erlang.list_to_integer(char.available_skills |> String.to_charlist, 16)
   end
 
   test "account updating while getting" do
