@@ -81,16 +81,19 @@ defmodule Entice.Web.SkillChannel do
 
   def handle_in("skillbar:set", %{"slot" => slot, "id" => id}, socket) when slot in 0..10 and id > -1 do
     skill_bits = :erlang.list_to_integer((socket |> character).available_skills |> String.to_charlist, 16)
-    unlocked = Entice.Utils.BitOps.get_bit(skill_bits, id)
+    unlocked = Entice.Utils.BitOps.get_bit(skill_bits, id) > 0 or id == 0
 
     case {unlocked, Skills.get_skill(id), (socket |> map).is_outpost?} do
       {_, nil, _}   -> {:reply, {:error, %{reason: :undefined_skill}}, socket}
-      {0, _, _}     -> {:reply, {:error, %{reason: :unavailable_skill}}, socket}
+      {false, _, _}     -> {:reply, {:error, %{reason: :unavailable_skill}}, socket}
       {_, _, false} -> {:reply, {:error, %{reason: :cannot_change_skill_in_explorable}}, socket}
       _ ->
         new_slots = socket |> entity_id |> SkillBar.change_skill(slot, id)
         Entice.Web.Repo.update(Character.changeset_skillbar((socket |> character), new_slots))
-        {:reply, {:ok, %{skillbar: new_slots}}, socket}
+        socket |> broadcast("skillbar:ok", %{
+          entity: socket |> entity_id,
+          skillbar: new_slots})
+        {:reply, :ok, socket}
     end
   end
 
