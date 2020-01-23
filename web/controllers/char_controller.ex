@@ -53,6 +53,7 @@ defmodule Entice.Web.CharController do
           {:ok, _char} = Client.get_char(id, char.name)
           ok(%{message: "Char created.", character: char |> Map.from_struct |> Map.take(@field_whitelist)})
       end
+  end
 
   def delete(conn, %{"char_name" => name} = params) do
     id = conn |> get_session(:client_id)
