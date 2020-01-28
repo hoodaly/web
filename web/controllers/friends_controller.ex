@@ -24,7 +24,7 @@ defmodule Entice.Web.FriendsController do
 
     results = for friend <- friends do
       {:ok, status, name} = get_status(friend.base_name)
-      _map = %{base_name: friend.base_name, current_name: name, status: status}
+      _map = %{id: friend.friend_account_id, base_name: friend.base_name, current_name: name, status: status}
     end
 
     conn |> json(ok(%{
@@ -62,12 +62,11 @@ defmodule Entice.Web.FriendsController do
 
 
   @doc "Deletes friend :id from friends list of connected account."
-  def delete(conn, %{"char_name" => friend_name}) do
+  def delete(conn, %{"char_id" => friend_id}) do
     session_id = get_session(conn, :client_id)
     {:ok, acc} = Client.get_account(session_id)
 
-    #friend_name will always be base_name of friend model since query controller by client, so no need to get friend by id
-    result = case Queries.get_friend_by_base_name(acc.id, friend_name) do
+    result = case Queries.get_friend_by_friend_account_id(acc.id, friend_id) do
       nil -> error(%{message: "This friend does not exist."})
       friend ->
         Entice.Web.Repo.delete(friend)
@@ -76,5 +75,5 @@ defmodule Entice.Web.FriendsController do
     conn |> json(result)
   end
 
-  def delete(conn, params), do: conn |> json(error(%{message: "Expected param 'char_name', got: #{inspect params}"}))
+  def delete(conn, params), do: conn |> json(error(%{message: "Expected param 'char_id', got: #{inspect params}"}))
 end
