@@ -5,7 +5,7 @@ sudo apt-get upgrade
 
 
 # installing PostgreSQL & disabling user password (dont run this on prod ;P)...
-sudo apt-get install -y postgresql-9.4 postgresql-client-9.4
+sudo apt-get install -y postgresql-11 postgresql-client-11
 sudo -u 'postgres' psql -c "ALTER ROLE postgres WITH PASSWORD ''" 1>/dev/null
 
 # init the postgres service
