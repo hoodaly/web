@@ -1,7 +1,7 @@
 defmodule Entice.Web.DocuController do
   use Entice.Web.Web, :controller
   alias Entice.Logic.Maps
-  alias Entice.Skills
+  alias Entice.Logic.Skills
 
   plug :ensure_login
 

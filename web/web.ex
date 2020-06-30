@@ -80,7 +80,7 @@ defmodule Entice.Web.Web do
 
   def channel do
     quote do
-      use Phoenix.Channel
+      use Phoenix.Channel, log_handle_in: true
       import Phoenix.Socket
       import Phoenix.Naming
       import Entice.Web.Socket.Helpers

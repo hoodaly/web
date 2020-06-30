@@ -15,7 +15,7 @@ defmodule Entice.Web.Character do
     field :hairstyle,        :integer, default: 7
     field :face,             :integer, default: 30
     belongs_to :account, Entice.Web.Account
-    timestamps
+    timestamps()
   end
 
 

@@ -4,7 +4,7 @@ defmodule Entice.Web.Invitation do
   schema "invitations" do
     field :email, :string
     field :key,   :string
-    timestamps
+    timestamps()
   end
 
 

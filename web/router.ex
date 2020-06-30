@@ -17,7 +17,7 @@ defmodule Entice.Web.Router do
 
     get "/",             PageController, :index
     get "/auth",         PageController, :auth
-    get "/client/:map",  PageController, :client
+    get "/client/:map/:char",  PageController, :client
     get "/register",     PageController, :account
     get "/invitation",   PageController, :invitation
     get "/friend",       PageController, :friend
@@ -39,6 +39,7 @@ defmodule Entice.Web.Router do
 
     get     "/char",                  CharController,     :list
     post    "/char",                  CharController,     :create
+    delete  "/char",                  CharController,     :delete
 
     get     "/maps",                  DocuController,     :maps
     get     "/skills",                DocuController,     :skills
