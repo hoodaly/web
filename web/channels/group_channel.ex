@@ -1,12 +1,10 @@
 defmodule Entice.Web.GroupChannel do
   use Entice.Web.Web, :channel
   use Entice.Logic.Attributes
-  alias Entice.Logic.Area
-  alias Entice.Logic.Group
+  alias Entice.Logic.{Group, Maps}
   alias Entice.Entity
   alias Entice.Entity.Coordination
-  alias Entice.Web.Token
-  alias Entice.Web.Endpoint
+  alias Entice.Web.{Endpoint, Token}
   alias Phoenix.Socket
 
 
@@ -16,15 +14,15 @@ defmodule Entice.Web.GroupChannel do
 
 
   def join("group:" <> map, _message, %Socket{assigns: %{map: map_mod}} = socket) do
-    {:ok, ^map_mod} = Area.get_map(camelize(map))
+    {:ok, ^map_mod} = Maps.get_map(camelize(map))
     Process.flag(:trap_exit, true)
-    send(self, :after_join)
+    send(self(), :after_join)
     {:ok, socket}
   end
 
 
   def handle_info(:after_join, socket) do
-    Coordination.register_observer(self)
+    Coordination.register_observer(self(), socket |> map)
     :ok = Group.register(socket |> entity_id)
     {:noreply, socket}
   end

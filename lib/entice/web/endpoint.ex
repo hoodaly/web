@@ -38,15 +38,12 @@ defmodule Entice.Web.Endpoint do
 
 
   # Helpers that are not offered by phoenix by default
-
-  def subscribers(topic),
-  do: Phoenix.PubSub.subscribers(@pubsub_server, topic)
-
+  
   def plain_broadcast(topic, message),
   do: Phoenix.PubSub.broadcast(@pubsub_server, topic, message)
 
   def plain_broadcast_from(topic, message),
-  do: plain_broadcast_from(self, topic, message)
+  do: plain_broadcast_from(self(), topic, message)
 
   def plain_broadcast_from(pid, topic, message),
   do: Phoenix.PubSub.broadcast_from(@pubsub_server, pid, topic, message)

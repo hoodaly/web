@@ -4,17 +4,18 @@ defmodule Entice.Web.Mixfile do
   def project do
     [app: :entice_web,
      version: "0.0.1",
-     elixir: "~> 1.1",
+     elixir: "~> 1.3",
      elixirc_paths: elixirc_paths(Mix.env),
-     compilers: [:phoenix] ++ Mix.compilers,
+     compilers: [:phoenix, :gettext] ++ Mix.compilers,
      build_embedded: Mix.env == :prod,
      start_permanent: Mix.env == :prod,
-     deps: deps]
+     aliases: aliases(),
+     deps: deps()]
   end
 
   def application do
     [mod: {Entice.Web, []},
-     applications: [:phoenix, :phoenix_html, :cowboy, :logger,
+     applications: [:phoenix, :phoenix_pubsub, :phoenix_html, :cowboy, :logger, :gettext,
                     :phoenix_ecto, :postgrex, :entice_entity]]
   end
 
@@ -22,15 +23,27 @@ defmodule Entice.Web.Mixfile do
   defp elixirc_paths(_),     do: ["lib", "web"]
 
   defp deps do
-    [{:entice_logic, github: "entice/logic", ref: "407baecd45079ccda2ca22ff3bbaa7234d76df38"},
-     {:entice_entity, github: "entice/entity", ref: "f39a63a0e73bcddc39b9562316fb03e8bda53e8c"},
-     {:entice_utils, github: "entice/utils", ref: "74ce9f8a2e2fd7766263e193bffba4901aa425a8"},
+    [#{:entice_logic, github: "entice/logic", ref: "e3a833c9197edbdb6c43ebffb02a2705ca13bad3"},
+     #{:entice_entity, github: "entice/entity", ref: "c26f6f77ae650e25e6cd2ffea8aae46b7d83966a"},
+     #{:entice_utils, github: "entice/utils", ref: "79ead4dca77324b4c24f584468edbaff2029eeab"},
+     {:entice_logic, path: "../entice_logic"},
+     {:entice_entity, path: "../entice_entity"},
+     {:entice_utils, path: "../entice_utils"},
      {:cowboy, "~> 1.0"},
-     {:phoenix, "~> 1.0.3"},
-     {:phoenix_ecto, "~> 1.2"},
+     {:phoenix, "~> 1.2.0-rc"},
+     {:phoenix_pubsub, "~> 1.0.0-rc"},
+     {:phoenix_ecto, "~> 3.0.0-rc"},
      {:postgrex, ">= 0.0.0"},
-     {:phoenix_html, "~> 2.2"},
+     {:phoenix_html, "~> 2.3"},
      {:phoenix_live_reload, "~> 1.0", only: :dev},
-     {:uuid, "~> 1.0"}] # https://github.com/zyro/elixir-uuid
+     {:gettext, "~> 0.9"},
+     {:uuid, "~> 1.0"}, # https://github.com/zyro/elixir-uuid
+     {:geom, "~> 1.0"}]
+  end
+
+  defp aliases do
+    ["ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
+     "ecto.reset": ["ecto.drop", "ecto.setup"],
+     test:  ["ecto.create --quiet", "ecto.migrate", "test"]]
   end
 end

@@ -5,11 +5,9 @@ defmodule Entice.Test.Factories do
   use Entice.Logic.Attributes
   use Phoenix.ChannelTest
   alias Entice.Entity
+  alias Entice.Entity.Coordination
   alias Entice.Logic.Player
-  alias Entice.Web.Account
-  alias Entice.Web.Character
-  alias Entice.Web.Client
-  alias Entice.Web.Token
+  alias Entice.Web.{Account, Character, Client, Token}
   alias Entice.Test.Factories.Counter
   import Entice.Utils.StructOps
 
@@ -21,7 +19,7 @@ defmodule Entice.Test.Factories do
   do: %Character{name: name}
 
 
-  def create_account,                      do: create_account([create_character])
+  def create_account,                      do: create_account([create_character()])
   def create_account(%Character{} = char), do: create_account([char])
   def create_account(characters),
   do: %Account{
@@ -31,7 +29,7 @@ defmodule Entice.Test.Factories do
 
 
   def create_client do
-    {:ok, id} = Client.add(create_account)
+    {:ok, id} = Client.add(create_account())
     id
   end
 
@@ -54,12 +52,13 @@ defmodule Entice.Test.Factories do
   end
 
   def create_player(map) when is_atom(map) do
-    char       = create_character
+    char       = create_character()
     acc        = create_account(char)
     cid        = create_client(acc)
-    {eid, pid} = create_entity
+    {eid, pid} = create_entity()
     {:ok, tid} = Token.create_entity_token(cid, %{entity_id: eid, map: map, char: char})
 
+    Coordination.register(eid, map)
     Player.register(eid, map, char.name, copy_into(%Appearance{}, char))
 
     {:ok, socket} = connect(Entice.Web.Socket, %{"client_id" => cid, "entity_token" => tid, "map" => map.underscore_name})

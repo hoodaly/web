@@ -8,7 +8,8 @@
     $('#output').append(pre);
   };
 
-  $.get("<%= raw token_path(@conn, :entity_token, map: @map, char_name: "Test Char") %>")
+  <!-- TODO: get character name from account -->
+  $.get("<%= raw token_path(@conn, :entity_token, map: @map, char_name: @char) %>")
    .then(function(data) {
     if (data.status === "ok") {
       puts("Message", "Green", JSON.stringify(data.message));
@@ -52,6 +53,15 @@
     })
     .receive("skillbar:ok", function(payload) {
       puts("[skill] Got", "Red", JSON.stringify(payload))
+    });
+
+
+    var mvt_chan = socket.channel("movement:" + map);
+    mvt_chan.join().receive("ok", function(payload) {
+      puts("[movement] Joined", "Blue", JSON.stringify(payload))
+    });
+    mvt_chan.on("update", function(payload) {
+      puts("[movement] Got", "Red", JSON.stringify(payload))
     });
 
     socket.channel("social:" + map + ":group:" + entity_id)

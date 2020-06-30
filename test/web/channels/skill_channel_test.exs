@@ -1,9 +1,8 @@
 defmodule Entice.Web.SkillChannelTest do
   use Entice.Web.ChannelCase
-  use Entice.Logic.Area
+  use Entice.Logic.Maps
   alias Entice.Web.Socket.Helpers
-  alias Entice.Logic.Skills
-  alias Entice.Logic.Vitals
+  alias Entice.Logic.{Skills, Vitals}
   alias Entice.Test.Factories
 
   setup do
@@ -17,12 +16,13 @@ defmodule Entice.Web.SkillChannelTest do
 
     {:ok, _, socket} = subscribe_and_join(player[:socket] |> Helpers.set_character(new_character), "skill:heroes_ascent", %{})
 
-    {:ok, [socket: socket, locked_skill_id: locked_skill_id]}
+    {:ok, [socket: socket, locked_skill_id: locked_skill_id, skills: skills]}
   end
 
 
-  test "join" do
-    assert_push "initial", %{unlocked_skills: _, skillbar: _}
+  test "join", %{skills: skills} do
+    assert skills != ""
+    assert_push "initial", %{unlocked_skills: ^skills, skillbar: _}
   end
 
   test "skillbar:set skill not unlocked", %{socket: socket, locked_skill_id: locked_skill_id} do

@@ -22,9 +22,10 @@ defmodule Entice.Web.Web do
   end
 
 
-  def model do
+  def schema do
     quote do
-      use Ecto.Model
+      use Ecto.Schema
+      import Ecto.Changeset
       @primary_key {:id, :binary_id, autogenerate: true}
       @foreign_key_type :binary_id
     end
@@ -79,7 +80,7 @@ defmodule Entice.Web.Web do
 
   def channel do
     quote do
-      use Phoenix.Channel
+      use Phoenix.Channel, log_handle_in: true
       import Phoenix.Socket
       import Phoenix.Naming
       import Entice.Web.Socket.Helpers

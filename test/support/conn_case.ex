@@ -20,7 +20,6 @@ defmodule Entice.Web.ConnCase do
       use Phoenix.ConnTest
 
       alias Entice.Web.Repo
-      import Ecto.Model
       import Ecto.Query, only: [from: 2]
 
       import Entice.Web.Router.Helpers
@@ -52,9 +51,9 @@ defmodule Entice.Web.ConnCase do
       def fetch_route(req, route, context), do: fetch_route(req, route, context, true)
 
       def fetch_route(req, route, context, must_login) do
-        conn = conn(req, route, context.params)
+        conn = build_conn(req, route, context.params)
         |> with_session()
-        if must_login == true, do: conn = log_in(conn, context)
+        conn = if must_login == true, do: log_in(conn, context), else: conn
 
         conn = Entice.Web.Router.call(conn, @opts)
         Poison.decode(conn.resp_body)
@@ -63,8 +62,10 @@ defmodule Entice.Web.ConnCase do
   end
 
   setup tags do
+    :ok = Ecto.Adapters.SQL.Sandbox.checkout(Entice.Web.Repo)
+
     unless tags[:async] do
-      Ecto.Adapters.SQL.restart_test_transaction(Entice.Web.Repo, [])
+      Ecto.Adapters.SQL.Sandbox.mode(Entice.Web.Repo, {:shared, self()})
     end
 
     :ok

@@ -30,9 +30,9 @@ defmodule Entice.Web.CharController do
       |> Map.take(@field_whitelist)
     end)
 
-    conn |> json ok(%{
+    conn |> json(ok(%{
       message: "All chars...",
-      characters: chars})
+      characters: chars}))
   end
 
 
@@ -53,7 +53,22 @@ defmodule Entice.Web.CharController do
           {:ok, _char} = Client.get_char(id, char.name)
           ok(%{message: "Char created.", character: char |> Map.from_struct |> Map.take(@field_whitelist)})
       end
+  end
 
-    conn |> json result
+  def delete(conn, %{"char_name" => name} = params) do
+    id = conn |> get_session(:client_id)
+    {:ok, acc} = Client.get_account(id)
+    
+    {:ok, character} = Client.get_char(id, name)
+    char = Entice.Web.Repo.delete(character)
+
+    result =
+      case char do
+        {:error, %{errors: errors}}                           -> error(%{message: "Errors occured: #{inspect errors}"})
+        {:error, _reason}                                     -> error(%{message: "Unknown error occured."})
+        {:ok, char}                                           -> ok(%{message: "Char deleted."})
+      end
+
+    conn |> json(result)
   end
 end

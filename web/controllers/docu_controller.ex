@@ -1,32 +1,32 @@
 defmodule Entice.Web.DocuController do
   use Entice.Web.Web, :controller
-  alias Entice.Logic.Area
-  alias Entice.Skills
+  alias Entice.Logic.Maps
+  alias Entice.Logic.Skills
 
   plug :ensure_login
 
 
   def maps(conn, _params) do
-    maps = Area.get_maps
+    maps = Maps.get_maps
     |> Enum.filter(&(&1 != Lobby and &1 != Transfer))
     |> Enum.map(&(&1.underscore_name))
 
-    conn |> json ok(%{
+    conn |> json(ok(%{
       message: "All maps...",
-      maps: maps})
+      maps: maps}))
   end
 
 
   def skills(conn, %{"id" => id}) do
     case id |> String.to_integer |> Skills.get_skill do
-      {:error, m} -> conn |> json error(%{message: m})
+      {:error, m} -> conn |> json(error(%{message: m}))
       {:ok, s}    ->
-        conn |> json ok(%{
+        conn |> json(ok(%{
           message: "Requested skill...",
           skill: %{
             id: s.id,
             name: s.underscore_name,
-            description: s.description}})
+            description: s.description}}))
     end
   end
 
@@ -38,8 +38,8 @@ defmodule Entice.Web.DocuController do
       name: &1.skill.underscore_name,
       description: &1.skill.description}))
 
-    conn |> json ok(%{
+    conn |> json(ok(%{
       message: "All skills...",
-      skills: sk})
+      skills: sk}))
   end
 end

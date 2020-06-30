@@ -1,16 +1,17 @@
 defmodule Entice.Web.Invitation do
-  use Entice.Web.Web, :model
+  use Entice.Web.Web, :schema
 
   schema "invitations" do
     field :email, :string
     field :key,   :string
-    timestamps
+    timestamps()
   end
 
 
-  def changeset(invitation, params \\ :empty) do
+  def changeset(invitation, params \\ :invalid) do
     invitation
-    |> cast(params, ~w(email key), ~w())
+    |> cast(params, [:email, :key])
+    |> validate_required([:email, :key])
     |> unique_constraint(:email)
     |> unique_constraint(:key)
   end

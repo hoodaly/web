@@ -1,6 +1,6 @@
 defmodule Entice.Web.MovementChannelTest do
   use Entice.Web.ChannelCase
-  use Entice.Logic.Area
+  use Entice.Logic.Maps
   use Entice.Logic.Attributes
   alias Entice.Entity
   alias Entice.Test.Factories
@@ -27,6 +27,6 @@ defmodule Entice.Web.MovementChannelTest do
       move_type: _,
       velocity: _}
 
-    assert %Position{pos: %Coord{x: 42, y: 1337}} = Entity.get_attribute(eid, Position)
+    assert %Position{coord: %Vector2D{x: 42, y: 1337}} = Entity.get_attribute(eid, Position)
   end
 end

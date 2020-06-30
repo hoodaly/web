@@ -4,18 +4,18 @@ defmodule Entice.Web.EntityChannel do
   alias Entice.Utils.StructOps
   alias Entice.Entity
   alias Entice.Entity.Coordination
-  alias Entice.Logic.Area
-  alias Entice.Logic.Npc
-  alias Entice.Web.Endpoint
-  alias Entice.Web.Token
+  alias Entice.Logic.{Maps, Npc}
+  alias Entice.Web.{Endpoint, Token}
   alias Phoenix.Socket
 
   @all_reported_attributes [
     Position,
+    Movement, #It feels good here to me. Should it be in movement channel or is movement channel only for player movement propagation?
     Name,
     Appearance,
     Health,
     Energy,
+    Morale,
     Level,
     Npc]
 
@@ -26,15 +26,15 @@ defmodule Entice.Web.EntityChannel do
 
 
   def join("entity:" <> map, _message, %Socket{assigns: %{map: map_mod}} = socket) do
-    {:ok, ^map_mod} = Area.get_map(camelize(map))
+    {:ok, ^map_mod} = Maps.get_map(camelize(map))
     Process.flag(:trap_exit, true)
-    send(self, :after_join)
+    send(self(), :after_join)
     {:ok, socket}
   end
 
 
   def handle_info(:after_join, socket) do
-    Coordination.register_observer(self)
+    Coordination.register_observer(self(), socket |> map)
     attrs = socket |> entity_id |> Entity.take_attributes(@all_reported_attributes)
     socket |> push("initial", %{attributes: process_attributes(attrs, @all_reported_attributes)})
     {:noreply, socket}
@@ -49,6 +49,10 @@ defmodule Entice.Web.EntityChannel do
     Endpoint.broadcast(Entice.Web.Socket.id(socket), "disconnect", %{})
     {:stop, :normal, socket}
   end
+
+
+  @doc "Filter out 'join' messages of this entity, which we'd get after registering as an observer"
+  def handle_info({:entity_join, %{entity_id: eid}}, %Socket{assigns: %{entity_id: eid}} = socket), do: {:noreply, socket}
 
 
   def handle_info({:entity_join, %{entity_id: entity_id, attributes: attrs}}, socket) do
@@ -95,15 +99,20 @@ defmodule Entice.Web.EntityChannel do
 
 
   def handle_in("map:change", %{"map" => map}, socket) do
-    {:ok, map_mod} = Area.get_map(camelize(map))
-    {:ok, _token}  = Token.create_mapchange_token(socket |> client_id, %{
-      entity_id: socket |> entity_id,
-      map: map_mod,
-      char: socket |> character})
+    reply = case Maps.get_map(camelize(map)) do
+      {:ok, map_mod} ->
+        {:ok, _token}  = Token.create_mapchange_token(socket |> client_id, %{
+          entity_id: socket |> entity_id,
+          map: map_mod,
+          char: socket |> character})
 
-    Endpoint.plain_broadcast(Entice.Web.Socket.id(socket), {:entity_mapchange, %{map: map_mod}})
+        Endpoint.plain_broadcast(Entice.Web.Socket.id(socket), {:entity_mapchange, %{map: map_mod}})
+        {:ok, %{map: map}}
 
-    {:reply, {:ok, %{map: map}}, socket}
+      _ -> {:error, %{reason: :unknown_map}}
+    end
+
+    {:reply, reply, socket}
   end
 
 
@@ -123,23 +132,27 @@ defmodule Entice.Web.EntityChannel do
   defp process_attributes(attributes, filter) when is_map(attributes) do
     attributes
     |> Map.keys
-    |> Enum.filter_map(
-        fn (attr) -> attr in filter end,
-        fn (attr) -> attributes[attr] |> attribute_to_tuple end)
+    |> Enum.filter(fn (attr) -> attr in filter end)
+    |> Enum.map(fn (attr) -> attributes[attr] |> attribute_to_tuple end)
     |> Enum.into(%{})
   end
 
   defp process_attributes(attributes, filter) when is_list(attributes) do
     attributes
-    |> Enum.filter_map(
-        fn (attr) -> attr in filter end,
-        &StructOps.to_underscore_name/1)
+    |> Enum.filter(fn (attr) -> attr in filter end)
+    |> Enum.map(&StructOps.to_underscore_name/1)
   end
 
 
   # Maps an attribute to a network-transferable tuple
-  defp attribute_to_tuple(%Position{pos: pos, plane: plane} = attr),
-  do: {attr |> StructOps.to_underscore_name, Map.from_struct(pos) |> Map.put(:plane, plane)}
+  defp attribute_to_tuple(%Movement{goal: goal, move_type: move_type, velocity: velocity} = attr),
+  do: {attr |> StructOps.to_underscore_name, goal
+                                             |> Map.from_struct
+                                             |> Map.put(:move_type, move_type)
+                                             |> Map.put(:velocity, velocity)}
+
+  defp attribute_to_tuple(%Position{coord: coord, plane: plane} = attr),
+  do: {attr |> StructOps.to_underscore_name, Map.from_struct(coord) |> Map.put(:plane, plane)}
 
   defp attribute_to_tuple(%Name{name: name} = attr),
   do: {attr |> StructOps.to_underscore_name, name}
@@ -152,6 +165,9 @@ defmodule Entice.Web.EntityChannel do
 
   defp attribute_to_tuple(%Energy{} = attr),
   do: {attr |> StructOps.to_underscore_name, Map.from_struct(attr)}
+
+  defp attribute_to_tuple(%Morale{morale: morale} = attr),
+  do: {attr |> StructOps.to_underscore_name, morale}
 
   defp attribute_to_tuple(%Level{level: lvl} = attr),
   do: {attr |> StructOps.to_underscore_name, lvl}
