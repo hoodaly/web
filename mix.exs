@@ -30,6 +30,7 @@ defmodule Entice.Web.Mixfile do
      {:entice_entity, path: "../entice_entity"},
      {:entice_utils, path: "../entice_utils"},
      {:cowboy, "~> 1.0"},
+     {:plug_cowboy, "~> 1.0"},
      {:phoenix, "~> 1.2.0-rc"},
      {:phoenix_pubsub, "~> 1.0.0-rc"},
      {:phoenix_ecto, "~> 3.0.0-rc"},
