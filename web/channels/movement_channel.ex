@@ -3,6 +3,7 @@ defmodule Entice.Web.MovementChannel do
   use Entice.Logic.Attributes
   alias Entice.Logic.Maps
   alias Entice.Logic.Movement, as: Move
+  alias Entice.Entity
   alias Entice.Entity.Coordination
   alias Phoenix.Socket
   alias Geom.Shape.Vector2D
@@ -22,12 +23,28 @@ defmodule Entice.Web.MovementChannel do
     {:noreply, socket}
   end
 
+  # info that something other than the client changed the position
+  def handle_info({:entity_change, %{changed: %{Position => %Position{coord: pos, plane: plane}}, entity_id: moving_entity_id}}, socket) do
+    %Move{goal: goal, velocity: velocity, move_type: move_type} = Entity.get_attribute(moving_entity_id, Movement)
+    broadcast!(socket, "update", %{
+      entity: moving_entity_id,
+      position: %{"x" => pos.x, "y" => pos.y, "plane" => plane},
+      goal: %{"x" => goal.x, "y" => goal.y},
+      velocity: velocity,
+      move_type: move_type
+    })
+    {:noreply, socket}
+  end
+
   def handle_info(_msg, socket), do: {:noreply, socket}
 
 
   # Incoming
 
+  # Info that something other than the client changed the position
+  def handle_in("update", %{"entity" => _}, socket), do: {:noreply, socket}
 
+  # Notice from the client that an entity position has changed
   def handle_in("update", %{
       "position" => %{"x" => pos_x, "y" => pos_y, "plane" => pos_plane} = pos,
       "goal" => %{"x" => goal_x, "y" => goal_y, "plane" => goal_plane} = goal,
