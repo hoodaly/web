@@ -10,6 +10,9 @@ defmodule Entice.Web.Socket.Helpers do
   def set_client_id(socket, client_id), do: socket |> assign(:client_id, client_id)
   def client_id(socket),                do: socket.assigns[:client_id]
 
+  def set_account(socket, account),     do: socket |> assign(:account, account)
+  def account(socket),                  do: socket.assigns[:account]
+
   def set_character(socket, character), do: socket |> assign(:character, character)
   def character(socket),                do: socket.assigns[:character]
 

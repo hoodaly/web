@@ -27,7 +27,6 @@ defmodule Entice.Web.Client do
   defp log_in({:error, _msg}), do: :error
   defp log_in({:ok, acc}) do
     existing = Client.Server.get_client_by_email(acc.email)
-
     {:ok, id, _pid} = case existing do
       id when is_bitstring(id) -> {:ok, id, :no_pid}
       nil -> Entity.start(UUID.uuid4(), %{Account => acc})
@@ -35,6 +34,8 @@ defmodule Entice.Web.Client do
 
     Client.Server.set_client_by_email(acc.email, id)
     Client.Server.set_client_by_account_id(acc.id, id)
+
+    set_account(id, acc)
 
     {:ok, id}
   end
