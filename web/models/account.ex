@@ -6,6 +6,7 @@ defmodule Entice.Web.Account do
     field :password, :string
     has_many :characters, Entice.Web.Character
     has_many :friends,    Entice.Web.Friend
+    has_many :items,      Entice.Web.Item
     timestamps()
   end
 

@@ -14,6 +14,7 @@ defmodule Entice.Web.Character do
     field :hair_color,       :integer, default: 0
     field :hairstyle,        :integer, default: 7
     field :face,             :integer, default: 30
+    has_many :items,     Entice.Web.Item
     belongs_to :account, Entice.Web.Account
     timestamps()
   end
@@ -42,4 +43,3 @@ defmodule Entice.Web.Character do
     |> unique_constraint(:name)
   end
 end
-
