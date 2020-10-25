@@ -1,13 +1,14 @@
 defmodule Entice.Web.SocialChannel do
   use Entice.Web.Web, :channel
-  alias Entice.Logic.{Group, Maps}
+  alias Entice.Logic.{Group, MapInstance}
+  alias Entice.Entity
   alias Entice.Entity.Coordination
   alias Phoenix.Socket
 
 
   def join("social:" <> map_rooms, _message, %Socket{assigns: %{map: map_mod}} = socket) do
     [map | rooms] = Regex.split(~r/:/, map_rooms)
-    {:ok, ^map_mod} = Maps.get_map(camelize(map))
+    %MapInstance{map: ^map_mod} = Entity.get_attribute(Entity.fetch!(map), MapInstance)
     join_internal(rooms, socket)
   end
 
@@ -20,7 +21,7 @@ defmodule Entice.Web.SocialChannel do
     case Group.is_my_leader?(socket |> entity_id, leader_id) do
       false -> {:error, %{reason: "Access to this group chat denied"}}
       true  ->
-        Coordination.register_observer(self(), socket |> map)
+        Coordination.register_observer(self(), socket |> map_inst)
         {:ok, socket |> set_leader(leader_id)}
     end
   end

@@ -10,11 +10,11 @@ defmodule Entice.Web.TokenController do
 
   plug :ensure_login
 
-  def entity_token(conn, %{"map" => map, "char_name" => char_name}), do: entity_token_internal(conn, map, char_name)
+  def entity_token(conn, %{"map" => map, "char_name" => char_name, "instance" => inst}), do: entity_token_internal(conn, map, inst, char_name)
 
   def entity_token(conn, params), do: conn |> json(error(%{message: "Expected param 'map, char_name', got: #{inspect params}"}))
 
-  defp entity_token_internal(conn, map, char_name) do
+  defp entity_token_internal(conn, map, inst, char_name) do
     id = get_session(conn, :client_id)
 
     # make sure any old entities are killed before being able to play
@@ -42,18 +42,20 @@ defmodule Entice.Web.TokenController do
 
     # init the entity and update the client
     with :ok <- Client.set_entity(id, eid),
-         :ok <- Coordination.register(eid, map_mod),
-         instance_id = MapRegistry.get_or_create_instance(map_mod),
+         instance_id = MapRegistry.get_or_create_instance(map_mod, inst),
+         :ok <- Coordination.register(eid, instance_id),
          :ok <- MapInstance.add_player(instance_id, eid),
          %{Player.Appearance => _,
            Player.Level => _,
            Player.Name =>_,
            Player.Position => _ } <- Player.register(eid, map_mod, char.name, copy_into(%Appearance{}, char)) do
+        #MapInstance.get_seeker(instance_id) |> Enum.each(fn x -> Seek.)
         conn |> json(ok(%{
           message: "Transferring...",
           client_id: id,
           entity_id: eid,
           entity_token: token,
+          map_instance: instance_id,
           map: map_mod.underscore_name,
           is_outpost: map_mod.is_outpost?}))
       end

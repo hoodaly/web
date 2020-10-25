@@ -4,7 +4,7 @@ defmodule Entice.Web.EntityChannel do
   alias Entice.Utils.StructOps
   alias Entice.Entity
   alias Entice.Entity.Coordination
-  alias Entice.Logic.{Maps, Npc}
+  alias Entice.Logic.{Character, Maps, Npc, MapRegistry, MapInstance}
   alias Entice.Web.{Endpoint, Token}
   alias Phoenix.Socket
 
@@ -25,8 +25,9 @@ defmodule Entice.Web.EntityChannel do
   @continually_reported_attributes @all_reported_attributes -- @initally_reported_attributes
 
 
-  def join("entity:" <> map, _message, %Socket{assigns: %{map: map_mod}} = socket) do
-    {:ok, ^map_mod} = Maps.get_map(camelize(map))
+  def join("entity:" <> map_instance, _message, %Socket{assigns: %{map: map_mod}} = socket) do
+    # Assert that the MapInstance belongs to the requested map
+    %MapInstance{map: ^map_mod} = Entity.get_attribute(Entity.fetch!(map_instance), MapInstance)
     Process.flag(:trap_exit, true)
     send(self(), :after_join)
     {:ok, socket}
@@ -34,7 +35,7 @@ defmodule Entice.Web.EntityChannel do
 
 
   def handle_info(:after_join, socket) do
-    Coordination.register_observer(self(), socket |> map)
+    Coordination.register_observer(self(), socket |> map_inst)
     attrs = socket |> entity_id |> Entity.take_attributes(@all_reported_attributes)
     socket |> push("initial", %{attributes: process_attributes(attrs, @all_reported_attributes)})
     {:noreply, socket}

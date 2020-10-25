@@ -24,8 +24,8 @@ defmodule Entice.Web.PageController do
   end
 
 
-  def client(conn, %{"map" => map, "char" => char}),
-  do: conn |> render("client.html", map: map, char: char)
+  def client(conn, %{"map" => map, "inst" => inst, "char" => char}),
+  do: conn |> render("client.html", map: map, inst: inst, char: char)
 
   def client(conn, _params),
   do: conn |> send_resp(400, "The client needs a 'map' parameter to work")

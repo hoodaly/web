@@ -9,25 +9,25 @@
   };
 
   <!-- TODO: get character name from account -->
-  $.get("<%= raw token_path(@conn, :entity_token, map: @map, char_name: @char) %>")
+  $.get("<%= raw token_path(@conn, :entity_token, map: @map, instance: @inst, char_name: @char) %>")
    .then(function(data) {
     if (data.status === "ok") {
       puts("Message", "Green", JSON.stringify(data.message));
       puts("Client", "DarkGreen", JSON.stringify(data.client_id));
       puts("Entity", "DarkGreen", JSON.stringify(data.entity_id));
       puts("Token", "DarkGreen", JSON.stringify(data.entity_token));
-      init("<%= @map %>", data.client_id, data.entity_id, data.entity_token)
+      init(data.map, data.map_instance, data.client_id, data.entity_id, data.entity_token)
     } else {
       $(location).attr('href','<%= page_path(@conn, :index) %>');
     }
   });
 
-  function init(map, client_id, entity_id, entity_token) {
+  function init(map_name, map_instance, client_id, entity_id, entity_token) {
     var socket = new Phoenix.Socket("/socket");
-    socket.connect({client_id: client_id, entity_token: entity_token, map: map});
+    socket.connect({client_id: client_id, entity_token: entity_token, map_instance: map_instance});
 
-    socket.channel("entity:" + map)
-    .join()
+    let entity_chan = socket.channel("entity:" + map_instance);
+    entity_chan.join()
     .receive("join:ok", function(payload) {
       puts("[entity] Joined", "Blue", JSON.stringify(payload))
     })
@@ -38,14 +38,14 @@
       puts("[entity] Got", "Red", JSON.stringify(payload))
     });
 
-    socket.channel("group:" + map)
+    socket.channel("group:" + map_instance)
     .join()
     .receive("join:ok", function(payload) {
       puts("[group] Joined", "Blue", JSON.stringify(payload))
     });
 
 
-    socket.channel("skill:" + map)
+    socket.channel("skill:" + map_instance)
     .join()
     .receive("join:ok", function(payload) {
       puts("[skill] Joined", "Blue", JSON.stringify(payload))
@@ -56,7 +56,7 @@
     });
 
 
-    var mvt_chan = socket.channel("movement:" + map);
+    var mvt_chan = socket.channel("movement:" + map_instance);
     mvt_chan.join().receive("ok", function(payload) {
       puts("[movement] Joined", "Blue", JSON.stringify(payload))
     });
@@ -64,9 +64,8 @@
       puts("[movement] Got", "Red", JSON.stringify(payload))
     });
 
-    socket.channel("social:" + map + ":group:" + entity_id)
-    .join()
-    .receive("join:ok", function(payload) {
+    var soc_chan = socket.channel("social:" + map_instance);
+    soc_chan.join().receive("ok", function(payload) {
       puts("[social] Joined", "Blue", JSON.stringify(payload))
     });
   };

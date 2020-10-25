@@ -4,6 +4,9 @@ defmodule Entice.Web.Socket.Helpers do
   def set_map(socket, map),             do: socket |> assign(:map, map)
   def map(socket),                      do: socket.assigns[:map]
 
+  def set_map_inst(socket, map_inst),   do: socket |> assign(:map_inst, map_inst)
+  def map_inst(socket),                 do: socket.assigns[:map_inst]
+
   def set_entity_id(socket, entity_id), do: socket |> assign(:entity_id, entity_id)
   def entity_id(socket),                do: socket.assigns[:entity_id]
 
@@ -23,8 +26,8 @@ end
 
 defmodule Entice.Web.Socket do
   use Phoenix.Socket
-  alias Entice.Logic.Maps
-  alias Entice.Web.Token
+  alias Entice.Logic.{Maps,MapRegistry}
+  alias Entice.Web.{Token,Client}
   import Entice.Web.Socket.Helpers
   import Phoenix.Naming
 
@@ -43,19 +46,22 @@ defmodule Entice.Web.Socket do
   # transport :longpoll, Phoenix.Transports.LongPoll
 
 
-  def connect(%{"client_id" => client_id, "entity_token" => token, "map" => map}, socket) do
+  def connect(%{"client_id" => client_id, "entity_token" => token, "map_instance" => map_inst}, socket) do
     try_connect(
       client_id, token, socket,
       Token.get_token(client_id),
-      Maps.get_map(camelize(map)))
+      #Client.get_account(client_id),
+      map_inst
+      )
   end
 
   defp try_connect(
       client_id, token, socket,
       {:ok, token, :entity, %{entity_id: entity_id, map: map_mod, char: char}},
-      {:ok, map_mod}) do
+      map_inst) do
     socket = socket
       |> set_map(map_mod)
+      |> set_map_inst(map_inst)
       |> set_entity_id(entity_id)
       |> set_client_id(client_id)
       |> set_character(char)

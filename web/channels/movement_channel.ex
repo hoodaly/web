@@ -1,7 +1,7 @@
 defmodule Entice.Web.MovementChannel do
   use Entice.Web.Web, :channel
   use Entice.Logic.Attributes
-  alias Entice.Logic.Maps
+  alias Entice.Logic.MapInstance
   alias Entice.Logic.Movement, as: Move
   alias Entice.Entity
   alias Entice.Entity.Coordination
@@ -10,7 +10,7 @@ defmodule Entice.Web.MovementChannel do
 
 
   def join("movement:" <> map, _message, %Socket{assigns: %{map: map_mod}} = socket) do
-    {:ok, ^map_mod} = Maps.get_map(camelize(map))
+    %MapInstance{map: ^map_mod} = Entity.get_attribute(Entity.fetch!(map), MapInstance)
     Process.flag(:trap_exit, true)
     send(self(), :after_join)
     {:ok, socket}
@@ -18,7 +18,7 @@ defmodule Entice.Web.MovementChannel do
 
 
   def handle_info(:after_join, socket) do
-    Coordination.register_observer(self(), socket |> map)
+    Coordination.register_observer(self(), socket |> map_inst)
     :ok = Move.register(socket |> entity_id)
     {:noreply, socket}
   end
