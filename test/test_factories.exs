@@ -6,7 +6,7 @@ defmodule Entice.Test.Factories do
   use Phoenix.ChannelTest
   alias Entice.Entity
   alias Entice.Entity.Coordination
-  alias Entice.Logic.Player
+  alias Entice.Logic.{Player, MapRegistry, MapInstance}
   alias Entice.Web.{Account, Character, Client, Token}
   alias Entice.Test.Factories.Counter
   import Entice.Utils.StructOps
@@ -51,17 +51,20 @@ defmodule Entice.Test.Factories do
     {id, pid}
   end
 
-  def create_player(map) when is_atom(map) do
+  def create_player(map, inst) when is_atom(map), do: create_player(MapRegistry.get_or_create_instance(map, inst))
+  def create_player(map_instance) do
     char       = create_character()
     acc        = create_account(char)
     cid        = create_client(acc)
     {eid, pid} = create_entity()
+    %MapInstance{map: map} = Entity.fetch_attribute!(map_instance, MapInstance)
+
     {:ok, tid} = Token.create_entity_token(cid, %{entity_id: eid, map: map, char: char})
 
-    Coordination.register(eid, map)
+    Coordination.register(eid, map_instance)
     Player.register(eid, map, char.name, copy_into(%Appearance{}, char))
 
-    {:ok, socket} = connect(Entice.Web.Socket, %{"client_id" => cid, "entity_token" => tid, "map" => map.underscore_name})
+    {:ok, socket} = connect(Entice.Web.Socket, %{"client_id" => cid, "entity_token" => tid, "map_instance" => map_instance})
 
     %{character: char, account: acc, client_id: cid, entity_id: eid, entity: pid, token: tid, socket: socket}
   end

@@ -3,25 +3,28 @@ defmodule Entice.Web.EntityChannelTest do
   use Entice.Logic.{Maps, Attributes}
   alias Entice.Entity
   alias Entice.Entity.Coordination
+  alias Entice.Logic.{MapInstance, MapRegistry}
   alias Entice.Test.Factories
 
 
   setup do
-    player = Factories.create_player(HeroesAscent)
+    mapinstance = MapRegistry.get_or_create_instance(HeroesAscent, "0")
+    player = Factories.create_player(mapinstance)
 
     {eid, _pid} = Factories.create_entity()
-    Coordination.register(eid, HeroesAscent)
+    Coordination.register(eid, mapinstance)
 
-    {:ok, _, socket} = subscribe_and_join(player[:socket], "entity:heroes_ascent", %{})
+    {:ok, _, socket} = subscribe_and_join(player[:socket], "entity:" <> mapinstance, %{})
     assert_push "initial", %{attributes: _}
 
     {:ok, [socket: socket, entity_id: player[:entity_id], other_entity_id: eid]}
   end
 
 
-  test "entity spawn" do
+  test "entity spawn", state do
     {:ok, eid, _pid} = Entity.start(UUID.uuid4(), [%Position{}, %Name{}])
-    Coordination.register(eid, HeroesAscent)
+    mapinstance = MapRegistry.get_or_create_instance(HeroesAscent, "0")
+    Coordination.register(eid, mapinstance)
     assert_push "add", %{
       entity: ^eid,
       attributes: %{
